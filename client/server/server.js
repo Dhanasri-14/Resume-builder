@@ -7,9 +7,6 @@ import userRouter from "./routes/userRoutes.js";
 import aiRouter from "./routes/aiRoutes.js";
 
 
-
-
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
