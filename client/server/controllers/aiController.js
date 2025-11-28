@@ -1,27 +1,17 @@
 
-// controllers/aiController.js
 
-import OpenAI from "openai";
+// server/controllers/aiController.js
+import ai from "../configs/ai.js";
 import Resume from "../models/Resume.js";
-
-// ❗ Remove the duplicate import of ai.js
-// import ai from "../configs/ai.js";
-
-// Initialize OpenAI client (ONLY ONCE)
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // POST: /api/ai/enhance-pro-sum
 export const enhanceProfessionalSummary = async (req, res) => {
   try {
     const { userContent } = req.body;
-
-    if (!userContent) {
+    if (!userContent)
       return res.status(400).json({ message: "Missing required fields" });
-    }
 
-    const response = await client.chat.completions.create({
+    const response = await ai.chat.completions.create({
       model: process.env.OPENAI_MODEL,
       messages: [
         {
@@ -35,8 +25,8 @@ export const enhanceProfessionalSummary = async (req, res) => {
 
     const enhancedContent = response.choices[0].message.content;
     return res.status(200).json({ enhancedContent });
-
   } catch (error) {
+    console.error(error);
     return res.status(400).json({ message: error.message });
   }
 };
@@ -45,12 +35,10 @@ export const enhanceProfessionalSummary = async (req, res) => {
 export const enhanceJobDescription = async (req, res) => {
   try {
     const { userContent } = req.body;
-
-    if (!userContent) {
+    if (!userContent)
       return res.status(400).json({ message: "Missing required fields" });
-    }
 
-    const response = await client.chat.completions.create({
+    const response = await ai.chat.completions.create({
       model: process.env.OPENAI_MODEL,
       messages: [
         {
@@ -64,8 +52,8 @@ export const enhanceJobDescription = async (req, res) => {
 
     const enhancedContent = response.choices[0].message.content;
     return res.status(200).json({ enhancedContent });
-
   } catch (error) {
+    console.error(error);
     return res.status(400).json({ message: error.message });
   }
 };
@@ -76,13 +64,10 @@ export const uploadResume = async (req, res) => {
     const { resumeText, title } = req.body;
     const userId = req.userId;
 
-    if (!resumeText) {
+    if (!resumeText)
       return res.status(400).json({ message: "Missing required fields" });
-    }
 
-    const systemPrompt =
-      "You are an expert AI agent to extract data from resume.";
-
+    const systemPrompt = "You are an expert AI agent to extract data from resume.";
     const userPrompt = `Extract data from this resume: ${resumeText}
 Provide the output strictly in JSON format:
 {
@@ -126,19 +111,18 @@ Provide the output strictly in JSON format:
   ]
 }`;
 
-    const response = await client.chat.completions.create({
+    const response = await ai.chat.completions.create({
       model: process.env.OPENAI_MODEL,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      response_format: { type: "json_object" },
     });
 
     const extractedData = response.choices[0].message.content;
     const parsedData = JSON.parse(extractedData);
 
-    // Create resume in DB
+    // Save resume in DB
     const newResume = await Resume.create({
       userId,
       title,
@@ -146,8 +130,13 @@ Provide the output strictly in JSON format:
     });
 
     return res.json({ resumeId: newResume._id });
-
   } catch (error) {
+    console.error(error);
     return res.status(400).json({ message: error.message });
   }
 };
+
+
+
+
+
